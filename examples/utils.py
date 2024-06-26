@@ -155,6 +155,21 @@ def normalized_quat_to_rotmat(quat: Tensor) -> Tensor:
     )
     return mat.reshape(quat.shape[:-1] + (3, 3))
 
+def get_rotation_scale_matrix(scales: Tensor, quats: Tensor):
+    # Ensure the quaternions are normalized
+    quats = F.normalize(quats, dim=-1) # [N, 4]
+
+    # Generate the rotation matrices from the quaternions
+    rotmats = normalized_quat_to_rotmat(quats)  # [N, 3, 3]
+
+    # generate scale matrices from the scales
+    scalemats = torch.diag_embed(scales)
+
+    # Combine the rotation matrix and scales
+    rotscalemats = rotmats @ scalemats
+
+    return rotscalemats
+
 
 def knn(x: Tensor, K: int = 4) -> Tensor:
     x_np = x.cpu().numpy()
